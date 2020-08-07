@@ -14,7 +14,7 @@ library(chilemapas)
 
 #Cargamos los datasets y el shape
 
-geo_chonchi <- read_excel("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chonchi_geocoding.xlsx", #datos de niños a geocoding
+geo_chonchi <- read_excel("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chonchi_geocoding.xlsx", #datos de niï¿½os a geocoding
                           skip = 1)
 colegios_Chonchi <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/colegios_Chonchi.csv")
 
@@ -41,7 +41,7 @@ Censo_chonchi<-Censo2017_Manzanas%>%
   filter(COMUNA==10203)%>%
   mutate(escolar= EDAD_0A5 + EDAD_6A14)
 
-#Unimos la información que tenemos del shape con el csv censal
+#Unimos la informaciï¿½n que tenemos del shape con el csv censal
 Chonchi<-left_join(municipios,Censo_chonchi, by=c("MANZENT_I"="ID_MANZENT"))
 
 ####################     PARTE 2 MAPEO DE DATOS Censales    #############################
@@ -54,11 +54,11 @@ comunas%>%
   ggplot() +
   geom_sf(aes(geometry = geometry))
 
-#Graficamos nuestro mapa con la información ya unida por tanto, lo haremos bajo los atributos que nosotros queremos,
-# en este caso corresonden a la variable creada llamada estudiantes. Esto se hará con GGPLOT2
+#Graficamos nuestro mapa con la informaciï¿½n ya unida por tanto, lo haremos bajo los atributos que nosotros queremos,
+# en este caso corresonden a la variable creada llamada estudiantes. Esto se harï¿½ con GGPLOT2
 
 #Definimos una paleta de colores a utilizar
-paleta <- c("#DCA761", "#CFB567", "#BFBC71", "#9EA887", "#819897")
+paleta <- c("#DCA761", "#CFB567", "#BFBC71", "#9EA887", "#819897") #paleta de colores tierra
 
 #Mapeamos con ggplot2 y nuestra data creada con datos censales
 ggplot(Chonchi)+
@@ -97,7 +97,7 @@ ggplot(Chonchi_Distrital)+
 ggplot(Chonchi_Distrital)+
   geom_sf(aes(fill= Estudiantes, geometry = geometry))+
   scale_fill_gradientn(colours = rev(paleta), name = "Poblacion\nEstudiantil")+
-  labs(title = "Distribución Escolar 2020")+
+  labs(title = "Distribuciï¿½n Escolar 2020")+
   geom_point(aes(x = lon, y = lat, color= `COLEGIO 2020`), data = geo_chonchi, size = 2)+
   theme(line = element_blank(),  # Quitamos el fono (tema) del mapa
         axis.text=element_blank(),

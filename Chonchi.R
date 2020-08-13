@@ -14,12 +14,13 @@ library(chilemapas)
 
 #Cargamos los datasets y el shape
 
-geo_chonchi <- read_excel("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chonchi_geocoding.xlsx", #datos de niÃ±os a geocoding
+geo_chonchi <- read_excel("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chonchi_geocoding.xlsx", #datos de niños a geocoding
                           skip = 1)
 colegios_Chonchi <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/colegios_Chonchi.csv")
 
 Censo2017_Manzanas <- read_delim("E:/Documentos/Trabajo/Rodrigo/Chonchi/Censo2017_16R_ManzanaEntidad_CSV/Censo2017_Manzanas.csv", 
                                  ";", escape_double = FALSE, trim_ws = TRUE) #Censo 2017 a nivel nacional en manzanas
+Jardines_Chonchi <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/Jardines_Chonchi.csv")
 
 #Cargamos el Shape (en formato tabla/dataframe) esto se hace para hacer un posterior join
 municipios <- st_read("E:/Documentos/Trabajo/Rodrigo/Chonchi/shape_chonchi/chonchi_shape.shp")#cargamos el shape como un dataframe
@@ -41,7 +42,7 @@ Censo_chonchi<-Censo2017_Manzanas%>%
   filter(COMUNA==10203)%>%
   mutate(escolar= EDAD_0A5 + EDAD_6A14)
 
-#Unimos la informacion que tenemos del shape con el csv censal
+#Unimos la información que tenemos del shape con el csv censal
 Chonchi<-left_join(municipios,Censo_chonchi, by=c("MANZENT_I"="ID_MANZENT"))
 
 ####################     PARTE 2 MAPEO DE DATOS Censales    #############################
@@ -54,11 +55,11 @@ comunas%>%
   ggplot() +
   geom_sf(aes(geometry = geometry))
 
-#Graficamos nuestro mapa con la informacion ya unida por tanto, lo haremos bajo los atributos que nosotros queremos,
-# en este caso corresonden a la variable creada llamada estudiantes. Esto se hara con GGPLOT2
+#Graficamos nuestro mapa con la información ya unida por tanto, lo haremos bajo los atributos que nosotros queremos,
+# en este caso corresonden a la variable creada llamada estudiantes. Esto se hará con GGPLOT2
 
 #Definimos una paleta de colores a utilizar
-paleta <- c("#DCA761", "#CFB567", "#BFBC71", "#9EA887", "#819897") #paleta de colores tierra
+paleta <- c("#DCA761", "#CFB567", "#BFBC71", "#9EA887", "#819897")
 
 #Mapeamos con ggplot2 y nuestra data creada con datos censales
 ggplot(Chonchi)+
@@ -97,7 +98,7 @@ ggplot(Chonchi_Distrital)+
 ggplot(Chonchi_Distrital)+
   geom_sf(aes(fill= Estudiantes, geometry = geometry))+
   scale_fill_gradientn(colours = rev(paleta), name = "Poblacion\nEstudiantil")+
-  labs(title = "DistribuciÃ³n Escolar 2020")+
+  labs(title = "Distribución Escolar 2020")+
   geom_point(aes(x = lon, y = lat, color= `COLEGIO 2020`), data = geo_chonchi, size = 2)+
   theme(line = element_blank(),  # Quitamos el fono (tema) del mapa
         axis.text=element_blank(),
@@ -119,12 +120,40 @@ jose +
   geom_point(aes(x = lon, y = lat, color= `COLEGIO 2020`), data = geo_chonchi, size = 2) + 
   facet_wrap(~`COLEGIO 2020`)
 
+
 #HTML          
 coordinates(colegios_Chonchi) <- ~lon + lat
 proj4string(colegios_Chonchi) <- "+init=epsg:4326"
 mapview(colegios_Chonchi) ## nos crea el html
 
 
+
+###################      Parte 4 Jaridines infantiles #############
+#Trabajo de datos... Recordar que ya tenemos la base de datos cargadas y este paso es posterior al mapeo de los colegios,
+# ya que utilizamos datos que son resultados como imput para este proceso de mapear los jardines
+Censo_chonchi[is.na(Censo_chonchi)] <- 0 #Pasamos los NA a 0 para poder mapearlos como atributos
+
+#Agrupamos la información para obtener un consolidado según unidad vecinal
+jose<-group_by(Censo_chonchi, DC)%>%
+  summarise(sum(EDAD_0A5))
+
+#Unimos nuestras base de datos
+Jardines<-distritos_chonchi%>%
+  left_join(jose, by= c("Distrito"="DC"))
+
+Jardines_Censo<-Chonchi_Distrital%>%
+  left_join(Jardines, by=c("COD_DISTRI"="Distrito"))
+
+##Mapeamos los jardines infantiles 
+ggplot(Jardines_Censo)+
+  geom_sf(aes(fill= `sum(EDAD_0A5)`, geometry = geometry))+
+  scale_fill_gradientn(colours = rev(paleta), name = "Poblacion\nInfante")+
+  labs(title = "Distribución de menores de 0 a 5 años y ubicación de jardines")+
+  geom_point(aes(x = lon, y = lat), data = Jardines_Chonchi, size = 2)+
+  theme(line = element_blank(),  # Quitamos el fono (tema) del mapa
+        axis.text=element_blank(),
+        axis.title=element_blank(),
+        panel.background = element_blank())
 
 ###Referencias########
 #https://www.datanalytics.com/libro_r/ejemplos-1.html
@@ -133,3 +162,4 @@ mapview(colegios_Chonchi) ## nos crea el html
 #https://rpubs.com/rubenfbc/mapa_coordenadas
 #https://www.nceas.ucsb.edu/sites/default/files/2020-04/OverviewCoordinateReferenceSystems.pdf
 #https://www.r-bloggers.com/cheesecake-diagrams-pie-charts-with-a-different-flavour/
+

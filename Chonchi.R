@@ -120,13 +120,28 @@ jose +
   geom_point(aes(x = lon, y = lat, color= `COLEGIO 2020`), data = geo_chonchi, size = 2) + 
   facet_wrap(~`COLEGIO 2020`)
 
-
+#Comenzamos con el trabajo a nivel de HTML 
 #HTML          
 coordinates(colegios_Chonchi) <- ~lon + lat
 proj4string(colegios_Chonchi) <- "+init=epsg:4326"
 mapview(colegios_Chonchi) ## nos crea el html
 
 
+coordinates(geo_chonchi) <- ~lon + lat
+proj4string(geo_chonchi) <- "+init=epsg:4326"
+mapview(geo_chonchi) ## nos crea el html
+
+#COLEGIO 2020
+mapview(geo_chonchi,zcol="COLEGIO 2020",alpha = 0, legend=FALSE, burst= TRUE) #colegios como capas
+mapview(geo_chonchi,zcol="COLEGIO 2020",alpha = 0) # estudiantes con leyenda de colegio
+
+mapview(colegios_Chonchi)
+
+coordinates(colegios_Chonchi) <- ~lon + lat
+proj4string(colegios_Chonchi) <- "+init=epsg:4326"
+mapview(colegios_Chonchi, cex= 10, zcol= "NOM_RBD")
+#Mapa final
+mapview(geo_chonchi,zcol="COLEGIO 2020",alpha = 0, legend=FALSE, burst= TRUE)+ mapview(colegios_Chonchi, cex= 10)
 
 ###################      Parte 4 Jaridines infantiles #############
 #Trabajo de datos... Recordar que ya tenemos la base de datos cargadas y este paso es posterior al mapeo de los colegios,
@@ -163,3 +178,21 @@ ggplot(Jardines_Censo)+
 #https://www.nceas.ucsb.edu/sites/default/files/2020-04/OverviewCoordinateReferenceSystems.pdf
 #https://www.r-bloggers.com/cheesecake-diagrams-pie-charts-with-a-different-flavour/
 
+############             Parte Bonus Muestra Chicho############
+#La idea de este trabajo es poder mapear a los estudiantes con su respectivo colegio para ver la distribucion en dos colegios
+#especificos, además de contar con un mapa que define de mejor manera las calles y carrerteras)
+#Cargamos archivos
+CHANQUIN <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chicho/CHANQUIN.csv")
+San_Carlos <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chicho/San_Carlos.csv")
+
+#Convertimos csv de Chanquin
+coordinates(CHANQUIN) <- ~lon + lat
+proj4string(CHANQUIN) <- "+init=epsg:4326"
+mapview(CHANQUIN, zcol= "tipo")
+
+## Convertimos CSV de la escuela San Carlos
+coordinates(San_Carlos) <- ~lon + lat
+proj4string(San_Carlos) <- "+init=epsg:4326"
+mapview(San_Carlos, zcol= "tipo", map.types= "OpenTopoMap")
+#Mapa unido
+mapview(San_Carlos, zcol= "tipo", map.types= "OpenTopoMap") + mapview(CHANQUIN, zcol= "tipo", map.types= "OpenTopoMap")

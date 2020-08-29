@@ -10,13 +10,15 @@ library(readxl)
 library(rgdal)
 library(sp)
 library(chilemapas)
+library(leaflet)
+library(leafpop)
 ####################     PARTE 1 TRABAJO CON DATOS   #############################
 
 #Cargamos los datasets y el shape
 
 geo_chonchi <- read_excel("E:/Documentos/Trabajo/Rodrigo/Chonchi/Chonchi_geocoding.xlsx", #datos de niños a geocoding
                           skip = 1)
-colegios_Chonchi <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/colegios_Chonchi.csv")
+colegios_Chonchi <- read_csv("E:/Documentos/Trabajo/Rodrigo/Chonchi/Colegios_Chonchi.csv")
 
 Censo2017_Manzanas <- read_delim("E:/Documentos/Trabajo/Rodrigo/Chonchi/Censo2017_16R_ManzanaEntidad_CSV/Censo2017_Manzanas.csv", 
                                  ";", escape_double = FALSE, trim_ws = TRUE) #Censo 2017 a nivel nacional en manzanas
@@ -34,6 +36,9 @@ Censo2017_Manzanas[is.na(Censo2017_Manzanas)] <- 0 #Todos los NA que tenga la ba
 #Convertir datos a numeric
 Censo2017_Manzanas$EDAD_6A14<-as.numeric(Censo2017_Manzanas$EDAD_6A14) #Para graficar atributos cuantitativos necesitamos que sean reconocidos de esa manera por R
 Censo2017_Manzanas$EDAD_0A5<-as.numeric(Censo2017_Manzanas$EDAD_0A5)
+#Filtramos para selecionar solamente las variables que nos importan
+colegios_Chonchi<-colegios_Chonchi%>%
+  select(RBD,NOM_RBD.x,lat,lon,MAT_TOTAL)
 #cole_chonchi$lat<-as.numeric(cole_chonchi$lat)#Nuestra variable lat y lon deben ser numericas por OBLIGACION
 
 #Filtramos nuestro dataset censal para solamente tener los datos de Chonchi y creamos una variable con los estudiantes de la zona
@@ -124,24 +129,28 @@ jose +
 #HTML          
 coordinates(colegios_Chonchi) <- ~lon + lat
 proj4string(colegios_Chonchi) <- "+init=epsg:4326"
-mapview(colegios_Chonchi) ## nos crea el html
+mapview(colegios_Chonchi, cex= 10, zcol= "RBD",map.types= "OpenStreetMap")
 
+#Haremos el mapa solamente con las variables que nos importan de la base de datos de estudiantes
+estudiantes<-geo_chonchi%>%
+  select("NOMBRE","DOMICILIO","COLEGIO 2020","lon","lat")
 
-coordinates(geo_chonchi) <- ~lon + lat
-proj4string(geo_chonchi) <- "+init=epsg:4326"
-mapview(geo_chonchi) ## nos crea el html
+coordinates(estudiantes) <- ~lon + lat
+proj4string(estudiantes) <- "+init=epsg:4326"
+mapview(estudiantes, popup = popupTable(geo_chonchi,
+                                        zcol = c("NOMBRE",
+                                                 "DOMICILIO",
+                                                 "COLEGIO 2020"
+                                        ))) ## nos crea el html
 
-#COLEGIO 2020
-mapview(geo_chonchi,zcol="COLEGIO 2020",alpha = 0, legend=FALSE, burst= TRUE) #colegios como capas
-mapview(geo_chonchi,zcol="COLEGIO 2020",alpha = 0) # estudiantes con leyenda de colegio
+#COLEGIO 2020 (prueba)
+mapview(estudiantes,zcol="COLEGIO 2020",alpha = 0, legend=FALSE, burst= TRUE) #colegios como capas
+mapview(estudiantes,zcol="COLEGIO 2020",alpha = 0) # estudiantes con leyenda de colegio
 
-mapview(colegios_Chonchi)
-
-coordinates(colegios_Chonchi) <- ~lon + lat
-proj4string(colegios_Chonchi) <- "+init=epsg:4326"
-mapview(colegios_Chonchi, cex= 10, zcol= "NOM_RBD")
 #Mapa final
-mapview(geo_chonchi,zcol="COLEGIO 2020",alpha = 0, legend=FALSE, burst= TRUE)+ mapview(colegios_Chonchi, cex= 10)
+mapview(estudiantes, alpha = 0, legend=FALSE, burst= TRUE, zcol="COLEGIO 2020",map.types= "OpenStreetMap")+  mapview(colegios_Chonchi, cex= 8,map.types= "OpenStreetMap")
+
+
 
 ###################      Parte 4 Jaridines infantiles #############
 #Trabajo de datos... Recordar que ya tenemos la base de datos cargadas y este paso es posterior al mapeo de los colegios,
